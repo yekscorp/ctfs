@@ -19,8 +19,8 @@ card_types = {"Visa":cc_gen.visaPrefixList,
             
 
 while True:
-    print p.recvuntil("I need a new ")
-    card_type = p.recvuntil("!\n").replace("!\n","")
+    #print p.recvuntil("I need a new ")
+    card_type = p.recvuntil("\n").replace("!\n","").replace("I need a new ","")
     print card_type
     if card_type in card_types.keys():
         if card_type == "American Express":
@@ -49,14 +49,37 @@ while True:
             sys.exit()
     elif "ends with" in card_type:
         cl = card_type.split(" ")
-        num = list[cl[4]]
-        cn = cc_gen.credit_card_number(generator, card_types['MasterCard'], num, 16, 1)[0]
+        num = list(cl[4])
+        num = [int(x) for x in num]
+        print num
+        cn = cc_gen.credit_card_number(generator, card_types['Visa'], num, 16, 1)[0]
         print "%s %s" % (str(cn), len(cn))
         p.sendline(str(cn))
         f = p.recvuntil("\n")
         print f
         if "flag" in f:
             sys.exit()
+    elif "is valid!" in card_type:
+        cl = card_type.split(" ")
+        num = list(cl[5])
+        l = len(num)
+        given_digit = str(num.pop())
+        chk_digit = str(cc_gen.get_checkdigit(num,l))
+        print "%s -- %s" % (given_digit, chk_digit)
+        if given_digit == chk_digit and l == 16:
+            print "1"
+            p.sendline('1')
+            pass
+        else:
+            print "0"
+            p.sendline('0')
+            pass
+        print p.recvuntil("\n")
+        f = p.recvuntil("\n")
+        print f
+        if "flag" in f:
+            sys.exit()
+            
     else:
         p.recv()
         break
