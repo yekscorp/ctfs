@@ -46,60 +46,81 @@ jcbPrefixList = [['3', '5']]
 voyagerPrefixList = [['8', '6', '9', '9']]
 
 
-def completed_number(prefix, length):
+def completed_number(prefix, suffix, length):
     """
     'prefix' is the start of the CC number as a string, any number of digits.
     'length' is the length of the CC number to generate. Typically 13 or 16
     """
 
+
+
     ccnumber = prefix
 
     # generate digits
 
-    while len(ccnumber) < (length - 1):
-        digit = str(generator.choice(range(0, 10)))
-        ccnumber.append(digit)
+    checkdigit = 10
+    if suffix:
+        desired_checkdigit = suffix[len(suffix)-1]
+    else:
+        desired_checkdigit = 0
 
-    # Calculate sum
 
-    sum = 0
-    pos = 0
+    rand_len = length - 1
+    if suffix:
+        rand_len -= len(suffix) - 1
+    while checkdigit != desired_checkdigit:
 
-    reversedCCnumber = []
-    reversedCCnumber.extend(ccnumber)
-    reversedCCnumber.reverse()
+        ccnumber = copy.deepcopy(prefix)
 
-    while pos < length - 1:
+        while len(ccnumber) < (rand_len):
+            digit = str(generator.choice(range(0, 10)))
+            ccnumber.append(digit)
 
-        odd = int(reversedCCnumber[pos]) * 2
-        if odd > 9:
-            odd -= 9
+        ccnumber.extend(suffix[:len(suffix)-1])
+        # Calculate sum
 
-        sum += odd
+        sum = 0
+        pos = 0
 
-        if pos != (length - 2):
+        reversedCCnumber = []
+        reversedCCnumber.extend(ccnumber)
+        reversedCCnumber.reverse()
 
-            sum += int(reversedCCnumber[pos + 1])
+        while pos < length - 1:
 
-        pos += 2
+            odd = int(reversedCCnumber[pos]) * 2
+            if odd > 9:
+                odd -= 9
 
-    # Calculate check digit
+            sum += odd
 
-    checkdigit = ((sum / 10 + 1) * 10 - sum) % 10
+            if pos != (length - 2):
+
+                sum += int(reversedCCnumber[pos + 1])
+
+            pos += 2
+
+        # Calculate check digit
+
+        checkdigit = ((sum / 10 + 1) * 10 - sum) % 10
+        if not suffix:
+            desired_checkdigit = checkdigit
+
+        pass
 
     ccnumber.append(str(checkdigit))
 
     return ''.join(ccnumber)
 
 
-def credit_card_number(rnd, prefixList, length, howMany):
+def credit_card_number(rnd, prefixList, suffix, length, howMany):
 
     result = []
 
     while len(result) < howMany:
 
         ccnumber = copy.copy(rnd.choice(prefixList))
-        result.append(completed_number(ccnumber, length))
+        result.append(completed_number(ccnumber, suffix, length))
 
     return result
 
@@ -125,31 +146,31 @@ if __name__ == "__main__":
 
     print("credit card generator by ..:: crazyjunkie ::..\n")
 
-    mastercard = credit_card_number(generator, mastercardPrefixList, 16, 10)
+    mastercard = credit_card_number(generator, mastercardPrefixList, [6], 16, 10)
     print(output("Mastercard", mastercard))
 
-    visa16 = credit_card_number(generator, visaPrefixList, 16, 10)
+    visa16 = credit_card_number(generator, visaPrefixList, [], 16, 10)
     print(output("VISA 16 digit", visa16))
   
-    visa13 = credit_card_number(generator, visaPrefixList, 13, 5)
+    visa13 = credit_card_number(generator, visaPrefixList, [], 13, 5)
     print(output("VISA 13 digit", visa13))
 
-    amex = credit_card_number(generator, amexPrefixList, 15, 5)
+    amex = credit_card_number(generator, amexPrefixList, [], 15, 5)
     print(output("American Express", amex))
 
     # Minor cards
 
-    discover = credit_card_number(generator, discoverPrefixList, 16, 3)
+    discover = credit_card_number(generator, discoverPrefixList, [], 16, 3)
     print(output("Discover", discover))
 
-    diners = credit_card_number(generator, dinersPrefixList, 14, 3)
+    diners = credit_card_number(generator, dinersPrefixList, [], 14, 3)
     print(output("Diners Club / Carte Blanche", diners))
 
-    enRoute = credit_card_number(generator, enRoutePrefixList, 15, 3)
+    enRoute = credit_card_number(generator, enRoutePrefixList, [], 15, 3)
     print(output("enRoute", enRoute))
 
-    jcb = credit_card_number(generator, jcbPrefixList, 16, 3)
+    jcb = credit_card_number(generator, jcbPrefixList, [], 16, 3)
     print(output("JCB", jcb))
 
-    voyager = credit_card_number(generator, voyagerPrefixList, 15, 3)
+    voyager = credit_card_number(generator, voyagerPrefixList, [], 15, 3)
     print(output("Voyager", voyager))

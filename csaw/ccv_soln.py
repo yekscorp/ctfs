@@ -24,10 +24,10 @@ while True:
     print card_type
     if card_type in card_types.keys():
         if card_type == "American Express":
-            cn = cc_gen.credit_card_number(generator, card_types[card_type], 15, 1)[0]
+            cn = cc_gen.credit_card_number(generator, card_types[card_type], [], 15, 1)[0]
             pass
         else:
-            cn = cc_gen.credit_card_number(generator, card_types[card_type], 16, 1)[0]
+            cn = cc_gen.credit_card_number(generator, card_types[card_type], [], 16, 1)[0]
             pass
         print "%s %s" % (str(cn), len(cn))
         p.sendline(str(cn))
@@ -40,7 +40,7 @@ while True:
         num = list(cl[4])
         prefix = [num]
         print prefix
-        cn = cc_gen.credit_card_number(generator, prefix, 16, 1)[0]
+        cn = cc_gen.credit_card_number(generator, prefix, [], 16, 1)[0]
         print "%s %s" % (str(cn), len(cn))
         p.sendline(str(cn))
         f = p.recvuntil("\n")
@@ -49,9 +49,8 @@ while True:
             sys.exit()
     elif "ends with" in card_type:
         cl = card_type.split(" ")
-        num = cl[4][0]
-        cn = cc_gen.credit_card_number(generator, card_types['MasterCard'], 16, 1)[0]
-        cn = cn[0:3] + num + cn[4:7] + num + cn[8:11] + num + cn[12:15] + num
+        num = list[cl[4][0]]
+        cn = cc_gen.credit_card_number(generator, card_types['MasterCard'], num, 16, 1)[0]
         print "%s %s" % (str(cn), len(cn))
         p.sendline(str(cn))
         f = p.recvuntil("\n")
