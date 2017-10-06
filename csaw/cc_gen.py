@@ -76,7 +76,8 @@ def completed_number(prefix, suffix, length):
             digit = str(generator.choice(range(0, 10)))
             ccnumber.append(digit)
 
-        ccnumber.extend(suffix[:len(suffix)-1])
+        suffix_str = [str(x) for x in suffix]
+        ccnumber.extend(suffix_str[:len(suffix)-1])
         # Calculate sum
 
         sum = 0
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 
     print("credit card generator by ..:: crazyjunkie ::..\n")
 
-    mastercard = credit_card_number(generator, mastercardPrefixList, [6], 16, 10)
+    mastercard = credit_card_number(generator, mastercardPrefixList, [4,4,0,1], 16, 10)
     print(output("Mastercard", mastercard))
 
     visa16 = credit_card_number(generator, visaPrefixList, [], 16, 10)
