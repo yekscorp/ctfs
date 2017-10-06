@@ -49,7 +49,7 @@ while True:
             sys.exit()
     elif "ends with" in card_type:
         cl = card_type.split(" ")
-        num = list[cl[4][0]]
+        num = list[cl[4]]
         cn = cc_gen.credit_card_number(generator, card_types['MasterCard'], num, 16, 1)[0]
         print "%s %s" % (str(cn), len(cn))
         p.sendline(str(cn))
