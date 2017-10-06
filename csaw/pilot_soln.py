@@ -1,7 +1,7 @@
 from pwn import *
 import struct
-#p = remote('pwnable.kr',9000)
-p = process('./pilot')
+p = remote('pwn.chal.csaw.io',8464)
+#p = process('./pilot')
 #gdb.attach(p,"""
 #b *0x400b35
 #""")
