@@ -3,7 +3,8 @@ import struct
 import copy
 scv = ELF('./scv')
 libc = ELF('./libc-2.23.so')
-p = process("./scv")
+p = connect("pwn.chal.csaw.io", 3764)
+#p = process("./scv")
 #gdb.attach(p,'''
 #b *0x0000000000400bf9
 #b *0x0000000000400d74
